@@ -17,6 +17,7 @@ app.post("/split-payments/compute", async (req, res, next) => {
       res.status(400).send(err.message);
       return;
     }
+
     //generate sum of ratio
     let sumOfRatio = 0;
     for (let index = 0; index < unstructured.SplitInfo.length; index++) {
@@ -27,10 +28,12 @@ app.post("/split-payments/compute", async (req, res, next) => {
         continue;
       }
     }
+
     //structuring in order of flat, percentage, ratio
     let SplitResponse = [];
     let amount = unstructured.Amount;
     let sumofAllSplit = 0;
+
     for (let index = 0; index < unstructured.SplitInfo.length; index++) {
       const element = unstructured.SplitInfo[index];
       if (element.SplitType === "FLAT") {
@@ -54,6 +57,7 @@ app.post("/split-payments/compute", async (req, res, next) => {
         continue;
       }
     }
+    //FOT PERCENTAGE
     for (let index = 0; index < unstructured.SplitInfo.length; index++) {
       const element = unstructured.SplitInfo[index];
       if (element.SplitType === "PERCENTAGE") {
@@ -74,6 +78,7 @@ app.post("/split-payments/compute", async (req, res, next) => {
         continue;
       }
     }
+    // FOR RATIOS
     let OpeningBalanceForRatio = amount;
     for (let index = 0; index < unstructured.SplitInfo.length; index++) {
       const element = unstructured.SplitInfo[index];
