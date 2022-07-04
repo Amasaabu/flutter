@@ -28,7 +28,6 @@ app.post("/split-payments/compute", async (req, res, next) => {
       }
     }
     //structuring in order of flat, percentage, ratio
-    let structuredSplitInfo = [];
     let SplitResponse = [];
     let amount = unstructured.Amount;
     let sumofAllSplit = 0;
@@ -36,9 +35,9 @@ app.post("/split-payments/compute", async (req, res, next) => {
       const element = unstructured.SplitInfo[index];
       if (element.SplitType === "FLAT") {
         amount = amount - element.SplitValue;
-        //constraint sum of all split value cannot be greater than transaction amount
+        //CONSTRAINT sum of all split value cannot be greater than transaction amount
         sumofAllSplit = sumofAllSplit + element.SplitValue;
-        //constraint: final amount cannot be less than 0
+        //CONSTRAINT: final amount cannot be less than 0
         if (
           element.SplitValue > unstructured.Amount ||
           element.SplitValue < 0
@@ -60,7 +59,7 @@ app.post("/split-payments/compute", async (req, res, next) => {
       if (element.SplitType === "PERCENTAGE") {
         const percentageValue = (element.SplitValue / 100) * amount;
         amount = amount - percentageValue;
-        //constraint sum of all split value cannot be greater than transaction amount
+        //CONSTRAINT sum of all split value cannot be greater than transaction amount
         sumofAllSplit = sumofAllSplit + percentageValue;
         if (percentageValue > unstructured.Amount || percentageValue < 0) {
           const err = new Error("Split amount computed greater than T.Amount");
@@ -79,13 +78,10 @@ app.post("/split-payments/compute", async (req, res, next) => {
     for (let index = 0; index < unstructured.SplitInfo.length; index++) {
       const element = unstructured.SplitInfo[index];
       if (element.SplitType === "RATIO") {
-        structuredSplitInfo.push(element);
-        // sumOfRatio = sumOfRatio + element.SplitValue;
-
         const value = element.SplitValue;
         const result = (+value / sumOfRatio) * OpeningBalanceForRatio;
         amount = amount - result;
-        //constraint sum of all split value cannot be greater than transaction amount
+        //CONSTRAINT sum of all split value cannot be greater than transaction amount
         sumofAllSplit = sumofAllSplit + result;
         if (result > unstructured.Amount || result < 0) {
           const err = new Error("Split amount computed greater than T.Amount");
@@ -96,16 +92,12 @@ app.post("/split-payments/compute", async (req, res, next) => {
           SplintEntityId: element.SplitEntityId,
           Amount: result,
         });
-        // console.log(sumOfRatio);
       } else {
         continue;
       }
     }
-    //AT THIS POINT WE HAVE ORDER RESPECTED NOW CALCULATION ON STRUCTURED SPLITINFO
-    //all flat
-    //for percentage
-    //for ratio
-    //constraint computed sum of all split values cannot be greater than the amount
+    //AT THIS POINT WE HAVE ORDER RESPECTED AND CALCULATION DONE
+    //CONSTRAINT computed sum of all split values cannot be greater than the amount
     if (sumofAllSplit > unstructured.Amount) {
       const err = new Error(
         "Sum of split values greater than transaction amount"
@@ -113,7 +105,7 @@ app.post("/split-payments/compute", async (req, res, next) => {
       res.status(400).send(err.message);
       return;
     }
-    //constraint: final amount cannot be less than 0
+    //CONSTRAINT: final amount cannot be less than 0
     if (amount < 0) {
       const err = new Error("Entry can not be less than 0");
       res.status(400).send(err.message);
